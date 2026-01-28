@@ -1,7 +1,11 @@
 #!/usr/bin/env zsh
 
 # Arch Update Readiness Checker
+# Version: 1.0.0
+# License: MIT
+
 # Checks Arch News, system status, and AUR updates safely before updating
+VERSION="1.0.0"
 
 set -euo pipefail
 
