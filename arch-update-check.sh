@@ -98,6 +98,8 @@ log "- AUR Updates:      $AUR_COUNT"
 log "- Failed Services:  $FAILED_SERVICES"
 log "- Partial Upgrade:  $PARTIAL_UPGRADE"
 
+TOTAL_UPDATES=$(( OFFICIAL_COUNT + AUR_COUNT ))
+
 # 6. Recommendation Logic
 if [[ -n "$RELEVANT_NEWS" ]]; then
     log "\n${YELLOW}Recommendation: Review news above before updating.${RESET}"
