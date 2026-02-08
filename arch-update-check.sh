@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
-# Arch Update Readiness Checker v1.3.0
+# Arch Update Readiness Checker v1.3.1
 # Fixes: Date-based news filtering and corrected Partial Upgrade detection.
 
-VERSION="1.3.0"
+VERSION="1.3.1"
 set -euo pipefail
 
 NEWS_RSS="https://archlinux.org/feeds/news/"
@@ -88,10 +88,15 @@ else
     log "${GREEN}No recent (14 days) news alerts affect your pending updates.${RESET}"
 fi
 
+# Calculate counts
+OFFICIAL_COUNT=$([[ -n "$PENDING_RAW" ]] && echo "$PENDING_RAW" | wc -l || echo "0")
+AUR_COUNT=$(yay -Qua 2>/dev/null | wc -l || echo "0")
+
 log "\nSystem Status:"
-log "- Pending Updates: $([[ -n "$PENDING_RAW" ]] && echo "$PENDING_RAW" | wc -l || echo "0")"
-log "- Failed Services: $FAILED_SERVICES"
-log "- Partial Upgrade: $PARTIAL_UPGRADE"
+log "- Official Updates: $OFFICIAL_COUNT"
+log "- AUR Updates:      $AUR_COUNT"
+log "- Failed Services:  $FAILED_SERVICES"
+log "- Partial Upgrade:  $PARTIAL_UPGRADE"
 
 # 6. Recommendation Logic
 if [[ -n "$RELEVANT_NEWS" ]]; then
