@@ -48,7 +48,7 @@ sed -i "s/^VERSION=.*/VERSION=\"$VERSION\"/" "$PROJECT_DIR/$SCRIPT_NAME"
 
 git add "$SCRIPT_NAME"
 git commit -m "Release v$VERSION"
-git push origin master
+git push origin main
 git tag -a "v$VERSION" -m "Version $VERSION"
 git push origin "v$VERSION"
 
