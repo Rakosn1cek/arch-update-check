@@ -1,5 +1,5 @@
 # ARCH UPDATE CHECK
-[v1.3.7]
+[v1.3.8]
 
 Because blindly running `pacman -Syu` on Arch Linux is a lifestyle choice, not a requirement.
 
@@ -70,10 +70,9 @@ If the system configuration is clean and no recent news flags are fetched, the t
 
 **Clone the repository**:
 
-```zsh
-git clone [https://github.com/Rakosn1cek/arch-update-check.git](https://github.com/Rakosn1cek/arch-update-check.git)
-cd arch-update-check
-```
+`git clone https://github.com/Rakosn1cek/arch-update-check.git`
+
+`cd arch-update-check`
 
 **Optional**: move it into your PATH
 

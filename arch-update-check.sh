@@ -4,14 +4,13 @@
 # ARCH UPDATE CHECK
 # Author: Lukas Grumlik - Rakosn1cek
 # Created: 2026-01
-# Version: 1.3.7
 # Descriptions: 
 # Minimalist Arch update check. Run before full upgrade to see the number of packages including AUR,
 # and any relevant news that may affect the upgrade without manual intervention.
 #----------------------------------------------------------------------------------
 
 
-VERSION="1.3.7"
+VERSION="1.3.8"
 set -euo pipefail
 
 NEWS_RSS="https://archlinux.org/feeds/news/"
