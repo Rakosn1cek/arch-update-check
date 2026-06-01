@@ -52,6 +52,10 @@ git push origin main
 git tag -a "v$VERSION" -m "Version $VERSION"
 git push origin "v$VERSION"
 
+# Give GitHub backend workers a moment to generate the release archive
+echo -e "${GREEN}==>${NC} Pausing for GitHub to generate archive asset..."
+sleep 3
+
 # 5. Sync to AUR Folder
 echo -e "${GREEN}==>${NC} Syncing to AUR repository..."
 cp "$PROJECT_DIR/$SCRIPT_NAME" "$AUR_DIR/"
