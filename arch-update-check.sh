@@ -1,9 +1,17 @@
 #!/usr/bin/env zsh
-# shellcheck disable=SC2034,SC2317
-# Arch Update Readiness Checker v1.3.5
-# Fixes: AUR print updates amount error.
+# shellcheck disable=SC2034,SC2317,SC1071
+#----------------------------------------------------------------------------------
+# ARCH UPDATE CHECK
+# Author: Lukas Grumlik - Rakosn1cek
+# Created: 2026-01
+# Version: 1.3.7
+# Descriptions: 
+# Minimalist Arch update check. Run before full upgrade to see the number of packages including AUR,
+# and any relevant news that may affect the upgrade without manual intervention.
+#----------------------------------------------------------------------------------
 
-VERSION="1.3.6"
+
+VERSION="1.3.7"
 set -euo pipefail
 
 NEWS_RSS="https://archlinux.org/feeds/news/"
@@ -39,7 +47,7 @@ if ! curl -4 -fsSL --connect-timeout 3 "$NEWS_RSS" -o "$TMP_NEWS" 2>/dev/null; t
     : > "$TMP_NEWS"
 fi
 
-# 3. Filter News (The "tr" One-Liner Fix)
+# 3. Filter News
 RELEVANT_NEWS=""
 if [[ -f "$TMP_NEWS" ]]; then
     # Un-minify, grab titles, skip channel header, take top 3
@@ -50,18 +58,14 @@ fi
 FAILED_SERVICES=$(systemctl --failed --no-legend | wc -l)
 
 # CORRECTED Partial Upgrade Check:
-# A true partial upgrade is when the local DB is synced (-Sy) but packages aren't (-Su).
-# heck if the last sync of the local db is significantly newer than the last system update.
 PARTIAL_UPGRADE=false
 if [[ -f /var/lib/pacman/db.lck ]]; then
     log "${YELLOW}Pacman is currently locked. Skipping partial check.${RESET}"
 else
-    # If pacman -Sy was run but -Qu is empty while checkupdates has items...
     # Actually, the simplest reliable check for a broken state:
     if pacman -Q linux >/dev/null 2>&1; then
         RUNNING_K=$(uname -r | cut -d'-' -f1)
         INSTALLED_K=$(pacman -Q linux | awk '{print $2}' | cut -d'-' -f1)
-        # If versions mismatch after an Syu, I just need a reboot, not a "Partial Upgrade" error.
     fi
 fi
 
@@ -69,7 +73,7 @@ fi
 log "\n${BOLD} ⚠ Arch Update Readiness Report${RESET}"
 if [[ -n "$RELEVANT_NEWS" ]]; then
     log "${RED}CRITICAL: Recent News affecting your updates:${RESET}"
-    # Use -e to ensure the newlines in $RELEVANT_NEWS are rendered
+    # Using -e to ensure the newlines in $RELEVANT_NEWS are rendered
     echo -e "$RELEVANT_NEWS" | sed 's/^/ - /'
 else
     log "${GREEN}No recent (14 days) news alerts affect your pending updates.${RESET}"
@@ -85,7 +89,7 @@ log "- AUR Updates:      $AUR_COUNT"
 log "- Failed Services:  $FAILED_SERVICES"
 log "- Partial Upgrade:  $PARTIAL_UPGRADE"
 
-# Now the math is guaranteed to be clean
+# Now the math should be clean
 TOTAL_UPDATES=$(( OFFICIAL_COUNT + AUR_COUNT ))
 
 # 6. Recommendation Logic
