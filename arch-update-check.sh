@@ -10,7 +10,7 @@
 #----------------------------------------------------------------------------------
 
 
-VERSION="1.3.8"
+VERSION="1.3.9"
 set -euo pipefail
 
 NEWS_RSS="https://archlinux.org/feeds/news/"

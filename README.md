@@ -1,5 +1,5 @@
 # ARCH UPDATE CHECK
-[v1.3.8]
+[v1.3.9]
 
 Because blindly running `pacman -Syu` on Arch Linux is a lifestyle choice, not a requirement.
 
