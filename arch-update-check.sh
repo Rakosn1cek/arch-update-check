@@ -9,8 +9,7 @@
 # and any relevant news that may affect the upgrade without manual intervention.
 #----------------------------------------------------------------------------------
 
-
-VERSION="1.3.9"
+VERSION="1.4.0"
 set -euo pipefail
 
 NEWS_RSS="https://archlinux.org/feeds/news/"
@@ -19,12 +18,20 @@ mkdir -p "$TMP_DIR"
 
 TMP_NEWS="$TMP_DIR/news.xml"
 TMP_PKGS="$TMP_DIR/pending_pkgs.txt"
+HASH_CACHE="$HOME/.cache/arch-update-check-hash"
+mkdir -p "$(dirname "$HASH_CACHE")"
 
 RED="\e[31m"
 YELLOW="\e[33m"
 GREEN="\e[32m"
 BOLD="\e[1m"
 RESET="\e[0m"
+
+# Parse runtime arguments for the custom bypass flag
+BYPASS_YOLO=false
+if [[ "${1:-}" == "--yolo" ]]; then
+    BYPASS_YOLO=true
+fi
 
 log() { echo -e "$1"; }
 
@@ -49,8 +56,8 @@ fi
 # 3. Filter News
 RELEVANT_NEWS=""
 if [[ -f "$TMP_NEWS" ]]; then
-    # Un-minify, grab titles, skip channel header, take top 3
-    RELEVANT_NEWS=$(cat "$TMP_NEWS" | tr '>' '\n' | grep -A 1 "<title" | grep -vE "Arch Linux: Recent|--|<title" | cut -d'<' -f1 | head -n 3)
+    # Un-minify, grab titles, skip channel header, take top 4
+    RELEVANT_NEWS=$(cat "$TMP_NEWS" | tr '>' '\n' | grep -A 1 "<title" | grep -vE "Arch Linux: Recent|--|<title" | cut -d'<' -f1 | head -n 4)
 fi
 
 # 4. System Checks
@@ -80,7 +87,7 @@ fi
 
 # Calculate counts
 OFFICIAL_COUNT=$([[ -n "$PENDING_RAW" ]] && echo "$PENDING_RAW" | wc -l || echo "0")
-AUR_COUNT=$(yay -Qua 2>/dev/null | wc -l || echo )
+AUR_COUNT=$(yay -Qua 2>/dev/null | wc -l || echo "0")
 
 log "\nSystem Status:"
 log "- Official Updates: $OFFICIAL_COUNT"
@@ -93,14 +100,38 @@ TOTAL_UPDATES=$(( OFFICIAL_COUNT + AUR_COUNT ))
 
 # 6. Recommendation Logic
 if [[ -n "$RELEVANT_NEWS" ]]; then
-    log "\n${YELLOW}Recommendation: Review news above before updating.${RESET}"
-    exit 1
-elif [[ "$FAILED_SERVICES" -gt 0 ]]; then
+    # Generate MD5 signature of the 4 news headlines to track seen status
+    CURRENT_HASH=$(echo "$RELEVANT_NEWS" | md5sum | awk '{print $1}')
+    
+    # Determine if this specific batch of headlines has been read/bypassed before
+    if [[ -f "$HASH_CACHE" ]] && [[ "$CURRENT_HASH" == "$(cat "$HASH_CACHE")" ]]; then
+        HAS_NEW_NEWS=false
+    else
+        HAS_NEW_NEWS=true
+    fi
+
+    if [[ "$HAS_NEW_NEWS" == true ]] && [[ "$BYPASS_YOLO" == false ]]; then
+        log "\n${RED}ERROR: Fresh Arch News detected! Update blocked.${RESET}"
+        log "${YELLOW}Review notices above. To acknowledge and unblock, run with: --yolo${RESET}"
+        rm -rf "$TMP_DIR"
+        exit 1
+    elif [[ "$HAS_NEW_NEWS" == true ]] && [[ "$BYPASS_YOLO" == true ]]; then
+        log "\n${YELLOW}Bypass active (--yolo). Saving news signature and continuing.${RESET}"
+        echo "$CURRENT_HASH" > "$HASH_CACHE"
+    fi
+fi
+
+# Secondary evaluation for system health markers
+if [[ "$FAILED_SERVICES" -gt 0 ]]; then
     log "\n${YELLOW}Recommendation: Fix failed services before updating.${RESET}"
+    rm -rf "$TMP_DIR"
     exit 1
 else
     log "\n${GREEN}Recommendation: Safe to update.${RESET}"
+    # Automatically ensure the hash tracking cache is updated if all clean
+    if [[ -n "$RELEVANT_NEWS" ]]; then
+        echo "$CURRENT_HASH" > "$HASH_CACHE"
+    fi
+    rm -rf "$TMP_DIR"
     exit 0
 fi
-
-rm -rf "$TMP_DIR"

@@ -1,5 +1,5 @@
 # ARCH UPDATE CHECK
-[v1.3.9]
+[v1.4.0]
 
 Because blindly running `pacman -Syu` on Arch Linux is a lifestyle choice, not a requirement.
 
@@ -12,7 +12,9 @@ This script checks whether updating the system right now is sensible, or likely 
 Before running a system update, the utility:
 
 * Fetches the latest official **Arch Linux News** RSS feed.
-* Extracts the top 3 recent headlines to catch critical manual intervention notices.
+* Extracts the top 4 recent headlines to catch critical manual intervention notices.
+* Remembers seen news using a local hash cache (`~/.cache/arch-update-check-hash`).
+* Hard-blocks execution if fresh, unacknowledged news headlines are found.
 * Checks for common system update hazards:
     * Failed systemd services (`systemctl --failed`).
     * Active pacman database locks (`db.lck`).
@@ -24,20 +26,25 @@ It then delivers a direct visual verdict instead of false optimism.
 
 ## Example Output
 
-```
+```zsh
+Checking official repositories...
+Fetching Arch News (RSS)...
+
  ⚠ Arch Update Readiness Report
 CRITICAL: Recent News affecting your updates:
+ - Arch Linux 2026 Leader Election Results
  - Breaking changes for all users of `varnish`, which is renamed to `vinyl-cache`
  - kea &gt;= 1:3.0.3-6 update requires manual intervention
  - iptables now defaults to the nft backend
 
 System Status:
-- Official Updates: 27
-- AUR Updates:      0
+- Official Updates: 39
+- AUR Updates:      1
 - Failed Services:  0
 - Partial Upgrade:  false
 
-Recommendation: Review news above before updating.
+ERROR: Fresh Arch News detected! Update blocked.
+Review notices above. To acknowledge and unblock, run with: --yolo
 ```
 
 If the system configuration is clean and no recent news flags are fetched, the tool reports back without drama.
@@ -47,6 +54,7 @@ If the system configuration is clean and no recent news flags are fetched, the t
 ## Features
 
 * Clean terminal output.
+* Intelligent auto-blocking safeguard for unread headlines.
 * Lightweight and fast shell footprint.
 * Failsafe integer validation for repository tracking.
 * Zero external dependencies beyond standard system utilities.
@@ -87,6 +95,11 @@ Run manually before updating:
 `arch-update-check`
 
 ---
+## Bypassing News Blocks
+
+If the script detects new headlines, it will block automatically and prompt you to acknowledge them. To register that you have read the current headlines and clear the block, run:
+
+`arch-update-check --yolo`
 
 ## Exit Codes
 
@@ -107,7 +120,7 @@ This utility assumes people occasionally get distracted or trust their memory to
 
 ## Disclaimer
 
-This utility reduces upgrade risks; it does not eliminate them.
+This utility reduces upgrade risks, **it does not eliminate them.**
 
 ---
 
